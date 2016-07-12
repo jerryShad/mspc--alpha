@@ -1,0 +1,84 @@
+##########################################################################################################
+
+# MSPC projects -  Bioconductor package for Multiple Sample Peak Calling
+#
+# MSPC organization of R files
+# pkg_core.R   ...... main implementation of MSPC packages
+# analysisResult.R  ..... function implementation for distributing multioutput respect to each sample
+# helper.R   .... all utility function which facilitate packaages performace
+# overlapOfMultiSample.R  ... function implementation for retrieving overlapped regions across multiple sample
+# intermediateSetPurification.R  ... function for looking up the certain set of ERs based on each independently execution of package running
+# readBed.R  ... function for reading input bed file as desired S4 objects in R
+# multiOverlapHelper.R  ... function implementation for purifying moost significant overlapped ERs when multiple overlapped regions found.
+# 
+# 
+# general outline of the internal functional call
+# Note: all of these functon are exported to namespace
+#'  |- loadSample
+#       |- checkValidParam
+#       |- readBedAsGRanges
+#         |- supportBed.internal
+#
+#
+#   |- initClassification
+#     |- checkParamInput
+#       |- isDesiredObjs
+#       |- isPvalueAttached
+#         |- pvalueConversion
+#     |- getStringentERs
+#       |- isDesiredObjFormat
+#     |- getWeakERs
+#       |- isDesiredObjFormat
+#     |- reshapeChoseninput
+#'  
+#'  |- stats.multiOverlap
+#'    |- checkValidParam
+#'      |- isSufficientSupportBed
+#'    |- readBedAsGRanges
+#'    
+#'    |- multiOverlappedERs.Internal
+#'      |- findOverlapsOfMultiBed
+#'      |- stat.multiOverlap
+#'    |- isDuplicatedMultiOverlapped
+#'      |- multiOverlap.helper
+#'    |- stat.initOverlapAnalysis
+#'      |- summarizedInitOverlap
+#'  
+#'  |- getTotOverlappedERs
+#'    |- countAllOverlappedERs
+#'  |- filter.initOverlapResult
+#'    |- init.outputSummary
+#'  |- do.FisherTest.initOverlap
+#'    |- fisher.test
+#'      |- fisher.test_summary
+#'    |- stat.outputFisher
+#'      |- xx
+#'  |- stats. successiveFilterERs
+#'    |- stats.chosenBed
+#'      |- stats.stringentERs
+#'        |- stringentConfired
+#'        |- stringentDiscarded
+#'      |- stats.weakERs
+#'        |- weakConfirmed
+#'        |- wealDiscarded
+#'    |- summary.successiveFilterERs
+#'    
+#'  |- summary.setPurificationTest
+#'    |- getTempResultOfPkgRun
+#'      |- reshapeProcessedERs
+#'    |- stats.multiLeveloutput
+#'    
+#'    |- do.BH.test
+#'      |- collectGroupofERs
+#'        |- pAdjustMethod
+#'        
+#'      |- stats.BH.test
+#'        |- prepareOuputForeach
+#'        |- resultAsGRanges
+#'      |- write.table
+#'    |- summarizedExperiment
+#'      |- summaryOfChosenBed
+#'      |- summaryOfSupportBed
+
+###################################################################################
+
