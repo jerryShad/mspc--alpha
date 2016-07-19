@@ -10,8 +10,8 @@ pvalueConversion <- function(x, pvalueBase = 1L) {
   stopifnot(class(x) == "GRanges")
   # explore score of all features
   if(is.null(x$pvalue)){
-    x$pvalue <- 10^(score(x)/(- pvalueBase))
-    x$score <- NULL
+    x$score <- 10^(score(x)/(- pvalueBase))
+    colnames(mcols(x))[2] <- "p.value"
   } else {
     x
   }
