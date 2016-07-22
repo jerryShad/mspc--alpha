@@ -106,13 +106,25 @@ chosen.ok$comb.p <- comb.pval
 
 ##==================================================================================
 ## Mission : working with filitering process based on stringency threshold parameter
-## Status: make it better format 
+## Status: perfectly works, but need to find better representation for output, optimize it
 
 all.dfs <- c(list(chosen.ok), sup.expand)
 
-out <- lapply(all.dfs, function(x) {
-  confirmed <- subset(x, x$comb.p <= 1e-08)
-})
+out.conf <- function(all.dfs, stringent_threshold) {
+  res.conf <- lapply(all.dfs, function(ele_) {
+    isConfirmed <- subset(ele_, ele_$comb.p <= stringent_threshold)
+  })
+  res.disc <- lapply(all.dfs, function(ele_) {
+    isDiscarded <- subset(ele_, ele_$comb.p > stringent_threshold)
+  })
+  result <- list('confirmed'=res.conf,
+                 'discard'=res.disc)
+  return(result)
+}
+
+##====================================================================================
+## Mission : Perform intermediate set purification test before BH correction test
+## Status : Under going all developing process
 
 
 
