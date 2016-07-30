@@ -1,7 +1,7 @@
 ## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 #
 #  imporoved version of custom function list that contributed to MSPC Packages
-#
+#  developed version: still under developing and optimize the code make it clean and no error happen
 
 ##========================================================================
 readBedAsGRanges<- function(peakFolder) {
@@ -72,27 +72,46 @@ tot.ovnum <- function(ov.hit, verbose=FALSE) {
 
 ##=====================================================================
 
-init.filt <- function(ov.hit, allPeak_denosie, replicate.type=c("Biological", "Technical"), verbose=FALSE) {
-  # input param checking
+get.minOv.param <- function(allPeak.files, replicate.type=c("Biological", "Technical"), verbose=FALSE) {
+  # input param check
+  stopifnot(length(allPeak.files)>=2)
   replicate.type = match.arg(replicate.type)
   min.c <- ifelse(replicate.type=="Biological",
-                  parLen <- length(allPeak_denosie) - 1L,
-                  parlen <- length(allPeak_denosie))
-  keep <- abs(tot.ovnum) >= abs(min.c)
-  peaks_Pass <- lapply(ov.hit, function(ele_) {
+                  param <- length(allPeak.files)-1,
+                  param <- length(allPeak.files))
+  min.c <- as.integer(min.c)
+  return(min.c)
+}
+##=====================================================================
+.keep.peaks <- function(ov, all.peakFiles, replicate.type=c("Biological", "Technical")) {
+  nn <- tot.ovnum(ov)
+  min.c <- get.minOv.param(all.peakFiles, "Biological")
+  keep <- nn >= min.c
+  res <- lapply(ov, function(ele_) {
     ans <- ele_[keep]
   })
-  peaks_drop <- lapply(ov.hit, function(x) {
-    message("all peaks regions are dropped because insufficient overlap")
-    out <- x[!keep]
+  message("keep peaks that sufficiently overlapped")
+  return(res)
+}
+
+#=====================================================================
+
+.discard.peaks_insufficientOverlap <- function(ov, all.peakFiles, replicate.type=c("Biological", "Technical"), idx=1L) {
+  #check input param
+  nn <- tot.ovnum(ov)
+  min.c <- get.minOv.param(all.peakFiles, "Biological")
+  disc.idx <- nn < min.c
+  ans <- lapply(ov, function(ele_) {
+    out <- ele_[disc.idx]
+    out <- Filter(length, out)
   })
-  res <- list("peak_pass"=peaks_Pass,
-              "peak_fail"=peaks_Pass)
+  res <- mapply(exp_fun, ans, all.peakFiles[c(idx, seq_len(length(allFiles_denoise))[-idx])])
   return(res)
 }
 
 ##=============================================================================
-.allPeak.pval.func <- function(ov.hit, ov.sample, idx, verbose=FALSE) {
+
+.get.pvalue <- function(ov.hit, ov.sample, idx, verbose=FALSE) {
   if (verbose) {
     cat(">> getting kardinality for all overlapped peaks from replicates...\t\t",
         format(Sys.time(), "%Y-%m-%d %X"), "\n")
@@ -101,7 +120,8 @@ init.filt <- function(ov.hit, allPeak_denosie, replicate.type=c("Biological", "T
     res <- extractList(ov.sample$p.value, ov.hit)
     return(res)
   }
-  allPeaks.pval <- mapply(.get.pval_helper, ov.hit, ov.sample[c(idx, seq_len(length(ov.sample))[-idx])])
+  ov.pass <- .keep.peaks(ov.hit, ov.sample, "Biological")
+  allPeaks.pval <- mapply(.get.pval_helper, ov.pass, ov.sample[c(idx, seq_len(length(ov.sample))[-idx])])
   .pval.helper <- function(pv.li) {
     ans <- sapply(pv.li, function(x) {
       out <- ifelse(length(x)>0, x, 0)
@@ -140,13 +160,48 @@ allhit.expand <- function(ov.hit, ov.sample, idx, allPeak.val) {
 
 ##==============================================================================
 
+.confirmed.peaks <- function(expanded.peaks, comb.stringThreshold=1E-8, verbose=TRUE) {
+  # check input param
+  stopifnot(is.numeric(comb.stringThreshold))
+  stopifnot(inherits(expanded.peaks[[1]], c("GRanges", "data.frame")))
+  if(!"comb.pvalue" %in% colnames(mcols(expanded.peaks[[1]]))) {
+    stop("combined pvalue of peaks are not found, unable to proceed")
+  }
+  res <- lapply(expanded.peaks, function(ele_) {
+    ans <- subset(ele_, ele_$comb.pvalue <= comb.stringThreshold)
+    ans <- ans[!duplicated(ans),]
+    ans
+  })
+  return(res)
+}
 
+##=======================================================================================
+.discard.peaks_failedFisherTest <- function(expanded.peaks, comb.stringentThreshold=1E-8, verbose=TRUE) {
+  # check input param
+  stopifnot(inherits(expanded.peaks, c("GRanges", "data.frame")))
+  stopifnot(is.numeric(comb.stringentThreshold))
+  if(!"comb.pvalue" %in% colnames(mcols(expanded.peaks[[1]]))) {
+    stop("combined pvalue of peaks are not found, unble to proceed")
+  }
+  res <- lapply(expanded.peaks, function(ele_) {
+    disc <- subset(ele_, ele_$comb.pvalue > comb.stringentThreshold)
+    disc <- disc[!duplicated(disc),]
+    disc$comb.pvalue <- NULL
+  })
+  return(res)
+}
 
+##=======================================================================================
 
+## Waiting problem : integrate discardedPeak from insufficient overlap and discardedPeaks from failed fisher test
 
+# very sketch solution (very first sketch idea)
 
+.discarded.peaks.summary <- mapply(rbind.data.frame, .discard.peaks_insufficientOverlap, .discard.peaks_failedFisherTest)
 
+re_duplicate <- lapply(.discarded.peaks.summary, function(ele_) {
+  ele_ <- ele_[!duplicated(ele_),]
+  ele_
+})
 
-
-
-
+##=======================================================================================
