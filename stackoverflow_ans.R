@@ -110,3 +110,20 @@ library(dplyr)
 dplyr::setdiff(res[[1]], res[[2]])
 
 ###===============================================================================================================================================
+
+## remove repeated overlap hit-index and only getting upper triangle of grid
+
+myList <- list(foo, bar, bleh)
+nn <- length(myList)
+index <- expand.grid("query"=1:nn, "target"=1:nn)
+index <- index[index[,1] <= index[,2],]
+
+res <- Map(function(i, j) findOverlaps(mylist[[i]], mylist[[j]]), idx[,1], idx[,2] )
+
+## combination for group of index for set of GRanges objects
+i1 <- seq_along(myList)
+l1 <- lapply(i1, function(i) seq(i))
+l2 <- lapply(seq_along(i1), function(i) i1[!i1 %in% sequence(i-1)] )
+Map(function(x,y) {x1 <- expand.grid(x,y)
+                     x1[c(TRUE, diff(x1[,1])>=0),]}, l1, l2)
+
