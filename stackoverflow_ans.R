@@ -145,7 +145,11 @@ desired_output <- list(
 
 
 tmp <- lapply(myList, drop)
-tmp <- tmp[!is.na(tmp)]  # fix me
+
+desired_output <- lapply(tmp, function(ele_) {
+  ele_[is.na(ele_)] <- 0L
+  ele_
+})
 
 lapply(desired_output, function(ele_) {
   ans <- as(ele_, "IntegerList")
@@ -163,4 +167,3 @@ lapply(final_hit, function(ele_) {
   ele_[all(ele_==0L)] <- IntegerList(integer(0))
   ele_
 })
-x[all(x == 0L)] <- IntegerList(integer(0))
