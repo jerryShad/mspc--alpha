@@ -127,3 +127,26 @@ l2 <- lapply(seq_along(i1), function(i) i1[!i1 %in% sequence(i-1)] )
 Map(function(x,y) {x1 <- expand.grid(x,y)
                      x1[c(TRUE, diff(x1[,1])>=0),]}, l1, l2)
 
+
+
+###==============================================================================================================================
+## Idea is okay but FIXME
+myList <- list(
+  a=IntegerList(1,2,3,4),
+  b=IntegerList(3,4,integer(0),integer(0)),
+  c=IntegerList(1,4,6,7)
+)
+
+desired_output <- list(
+  a=c(1,2,3,4),
+  b=c(3,4,0, 0),
+  c(1,4,6,7)
+)
+
+
+tmp <- lapply(myList, drop)
+tmp <- tmp[!is.na(tmp)]  # fix me
+
+lapply(desired_output, function(ele_) {
+  ans <- as(ele_, "IntegerList")
+})
