@@ -150,3 +150,17 @@ tmp <- tmp[!is.na(tmp)]  # fix me
 lapply(desired_output, function(ele_) {
   ans <- as(ele_, "IntegerList")
 })
+
+## after coercion from result of data.frame solution to IntegerList
+## I need to do below manipulation for each IntegerList in list:
+final_hit <- list(
+  idx1 <- IntegerList(1,2,3,0,4,0,0,6),
+  idx2 <- IntegerList(1,1,1,2,0,3,4,0),
+  idx3 <- IntegerList(1,2,4,4,5,0,6,7)
+)
+
+lapply(final_hit, function(ele_) {
+  ele_[all(ele_==0L)] <- IntegerList(integer(0))
+  ele_
+})
+x[all(x == 0L)] <- IntegerList(integer(0))
