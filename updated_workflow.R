@@ -58,7 +58,14 @@ library(dplyr)
 tmp <- bind_rows(v1, v2, v3) %>% distinct %>% arrange(a)
 
 res <- as.matrix(tmp)
-apply(res, 2, function(ele_) {
+final_hit <- apply(res, 2, function(ele_) {
   ele_ <- as(ele_, "IntegerList")
   ele_
 })
+
+final_hit <- lapply(final_hit, function(ele_) {
+  ele_[all(ele_==0L)] <- IntegerList(integer(0))
+  ele_
+})
+
+## now read to do initial filtering
