@@ -30,42 +30,32 @@ v2 <- overlap(set = ss, idx = 2L, FUN = which.min)
 v3 <- overlap(set = ss, idx = 3L, FUN = which.min)
 
 ##========================================================
-## await to optimize
-v1 <- lapply(v1, drop)
-v1 <- lapply(v1, function(ele_) {
-  ele_[is.na(ele_)] <- 0L
-  ele_
-})
+## optimized
+func <- function(myList) {
+  # input param checking
+  res <- lapply(myList, function(ele_) {
+    ans <- drop(ele_)
+    ans[is.na(ans)] <- 0L
+    ans
+  })
+  return(res)
+}
 
-v2 <- lapply(v2, drop)
-v2 <- lapply(v2, function(ele_) {
-  ele_[is.na(ele_)] <- 0L
-  ele_
-})
-
-v3 <- lapply(v3, drop)
-v3 <- lapply(v3, function(ele_) {
-  ele_[is.na(ele_)] <- 0L
-  ele_
-})
-
+hit.Intvec <- Map(func, list(v1, v2, v3))
 ##========================================================
-as.data.frame(v1)
-as.data.frame(v2)
-as.data.frame(v3)
+res_all <- lapply(hit.Intvec, as.data.frame)
 
 library(dplyr)
-tmp <- bind_rows(v1, v2, v3) %>% distinct %>% arrange(a)
+final.hit <- bind_rows(res_all) %>% distinct %>% arrange(a)
+res <- as.matrix(final.hit)
 
-res <- as.matrix(tmp)
 final_hit <- apply(res, 2, function(ele_) {
   ele_ <- as(ele_, "IntegerList")
-  ele_
-})
-
-final_hit <- lapply(final_hit, function(ele_) {
   ele_[all(ele_==0L)] <- IntegerList(integer(0))
   ele_
 })
+
+## compute total overlapped number
+Reduce('+', lapply(final_hit, lengths))
 
 ## now read to do initial filtering
